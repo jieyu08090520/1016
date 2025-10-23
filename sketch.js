@@ -3,7 +3,6 @@
 // -----------------------------------------------------------------
 
 
-// let scoreText = "成績分數: " + finalScore + "/" + maxScore;
 // 確保這是全域變數
 let finalScore = 0; 
 let maxScore = 0;
@@ -49,7 +48,8 @@ window.addEventListener('message', function (event) {
 function setup() { 
     // ... (其他設置)
     createCanvas(windowWidth / 2, windowHeight / 2); 
-    background(255); 
+    // 將背景改為黑色 (0) 以模擬夜空
+    background(0); 
     // 初始狀態：不進行迴圈繪製，直到收到分數
     noLoop(); 
 } 
@@ -57,7 +57,10 @@ function setup() {
 // score_display.js 中的 draw() 函數片段
 
 function draw() { 
-    background(255); // 清除背景
+    // *** 修改點 1: 將背景設為黑色 (0) ***
+    // 為了讓煙火有殘影效果，使用低透明度的黑背景來淡化前一幀的畫面
+    // 例如：background(0, 25);
+    background(0, 25); 
 
     // -----------------------------------------------------------------
     // A. 根據分數區間改變文本顏色和內容 (畫面反映一)
@@ -66,9 +69,12 @@ function draw() {
     textSize(80); 
     textAlign(CENTER);
     
+    // *** 修改點 2: 文本顏色改為白色，使其在黑底上可見 ***
+    fill(255); 
+    
     if (percentage >= 90) {
         // 滿分或高分：顯示鼓勵文本，使用鮮豔顏色
-        fill(0, 200, 50); // 綠色 [6]
+        fill(0, 255, 100); // 亮綠色
         text("恭喜！優異成績！", width / 2, height / 2 - 50);
         
         // !!! 煙火特效 !!!
@@ -78,18 +84,18 @@ function draw() {
         }
         
     } else if (percentage >= 60) {
-        // 中等分數：顯示一般文本，使用黃色 [6]
-        fill(255, 181, 35); 
+        // 中等分數：顯示一般文本
+        fill(255, 200, 50); // 亮黃色
         text("成績良好，請再接再厲。", width / 2, height / 2 - 50);
         
-    } else if (percentage >= 0) {
-        // 低分：顯示警示文本，使用紅色 [6]
-        fill(200, 0, 0); 
+    } else if (percentage > 0) {
+        // 低分：顯示警示文本
+        fill(255, 50, 50); // 亮紅色
         text("需要加強努力！", width / 2, height / 2 - 50);
         
     } else {
         // 尚未收到分數或分數為 0
-        fill(150);
+        fill(180); // 灰色
         text(scoreText, width / 2, height / 2);
         
         // 如果還沒有收到分數，停止 draw 迴圈
@@ -98,7 +104,7 @@ function draw() {
 
     // 顯示具體分數
     textSize(50);
-    fill(50);
+    fill(200); // 淺灰色
     text(`得分: ${finalScore}/${maxScore}`, width / 2, height / 2 + 50);
     
     
@@ -108,13 +114,13 @@ function draw() {
     
     if (percentage >= 90) {
         // 畫一個大圓圈代表完美 [7]
-        fill(0, 200, 50, 150); // 帶透明度
+        fill(0, 255, 100, 150); // 帶透明度
         noStroke();
         circle(width / 2, height / 2 + 150, 150);
         
     } else if (percentage >= 60) {
         // 畫一個方形 [4]
-        fill(255, 181, 35, 150);
+        fill(255, 200, 50, 150);
         rectMode(CENTER);
         rect(width / 2, height / 2 + 150, 150, 150);
     }
@@ -177,18 +183,23 @@ class Particle {
     }
 
     show() {
-        colorMode(HSB);
+        // 確保煙火是彩色的，使用 HSB
+        colorMode(HSB); 
+        
         if (!this.firework) {
             // 爆炸後的粒子
-            strokeWeight(2);
+            strokeWeight(3); // 粒子稍大一點
+            // 使用 this.lifespan 作為透明度 (Alpha)
             stroke(this.hu, 255, 255, this.lifespan);
         } else {
-            // 煙火主體
-            strokeWeight(4);
+            // 煙火主體 (火箭)
+            strokeWeight(6); // 火箭更大更亮
             stroke(this.hu, 255, 255);
         }
         point(this.pos.x, this.pos.y);
-        colorMode(RGB); // 恢復預設顏色模式
+        
+        // 記得切換回 RGB 模式，這樣文字顏色才不會出錯
+        colorMode(RGB); 
     }
     
     isFinished() {
@@ -201,7 +212,7 @@ class Firework {
         // 隨機顏色
         this.hu = random(255); 
         // 初始位置在畫布底部中央附近
-        this.firework = new Particle(random(width/2 - 50, width/2 + 50), height, this.hu, true);
+        this.firework = new Particle(random(width/2 - 100, width/2 + 100), height, this.hu, true);
         this.exploded = false;
         this.particles = [];
         this.gravity = createVector(0, 0.2); // 重力
@@ -230,8 +241,8 @@ class Firework {
     }
 
     explode() {
-        // 產生多個爆炸粒子
-        for (let i = 0; i < 100; i++) {
+        // 產生多個爆炸粒子 (增加數量讓爆炸效果更豐富)
+        for (let i = 0; i < 150; i++) {
             let p = new Particle(this.firework.pos.x, this.firework.pos.y, this.hu, false);
             this.particles.push(p);
         }
