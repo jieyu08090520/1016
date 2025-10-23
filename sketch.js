@@ -57,9 +57,7 @@ function setup() {
 // score_display.js 中的 draw() 函數片段
 
 function draw() { 
-    // *** 修改點 1: 將背景設為黑色 (0) ***
-    // 為了讓煙火有殘影效果，使用低透明度的黑背景來淡化前一幀的畫面
-    // 例如：background(0, 25);
+    // *** 殘影效果: 使用低透明度的黑背景來淡化前一幀的畫面 ***
     background(0, 25); 
 
     // -----------------------------------------------------------------
@@ -69,7 +67,7 @@ function draw() {
     textSize(80); 
     textAlign(CENTER);
     
-    // *** 修改點 2: 文本顏色改為白色，使其在黑底上可見 ***
+    // 確保文字在黑底上可見
     fill(255); 
     
     if (percentage >= 90) {
@@ -77,8 +75,7 @@ function draw() {
         fill(0, 255, 100); // 亮綠色
         text("恭喜！優異成績！", width / 2, height / 2 - 50);
         
-        // !!! 煙火特效 !!!
-        // 每隔幾幀發射一個新的煙火 (例如：每 5 幀)
+        // !!! 煙火特效 - 頻率不變 !!!
         if (frameCount % 5 === 0) {
             fireworks.push(new Firework());
         }
@@ -113,13 +110,13 @@ function draw() {
     // -----------------------------------------------------------------
     
     if (percentage >= 90) {
-        // 畫一個大圓圈代表完美 [7]
+        // 畫一個大圓圈代表完美 
         fill(0, 255, 100, 150); // 帶透明度
         noStroke();
         circle(width / 2, height / 2 + 150, 150);
         
     } else if (percentage >= 60) {
-        // 畫一個方形 [4]
+        // 畫一個方形 
         fill(255, 200, 50, 150);
         rectMode(CENTER);
         rect(width / 2, height / 2 + 150, 150, 150);
@@ -161,7 +158,8 @@ class Particle {
         } else {
             // 爆炸後的粒子，給予隨機放射速度
             this.vel = p5.Vector.random2D();
-            this.vel.mult(random(2, 10)); // 隨機速度大小
+            // *** 增強爆炸效果: 提高隨機速度範圍 (2 -> 3, 10 -> 12) ***
+            this.vel.mult(random(3, 12)); 
         }
         
         this.acc = createVector(0, 0);
@@ -188,12 +186,12 @@ class Particle {
         
         if (!this.firework) {
             // 爆炸後的粒子
-            strokeWeight(3); // 粒子稍大一點
+            strokeWeight(3); 
             // 使用 this.lifespan 作為透明度 (Alpha)
             stroke(this.hu, 255, 255, this.lifespan);
         } else {
             // 煙火主體 (火箭)
-            strokeWeight(6); // 火箭更大更亮
+            strokeWeight(6); 
             stroke(this.hu, 255, 255);
         }
         point(this.pos.x, this.pos.y);
@@ -241,8 +239,8 @@ class Firework {
     }
 
     explode() {
-        // 產生多個爆炸粒子 (增加數量讓爆炸效果更豐富)
-        for (let i = 0; i < 150; i++) {
+        // *** 增強爆炸效果: 增加粒子數量 (150 -> 200) ***
+        for (let i = 0; i < 200; i++) {
             let p = new Particle(this.firework.pos.x, this.firework.pos.y, this.hu, false);
             this.particles.push(p);
         }
