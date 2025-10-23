@@ -8,33 +8,29 @@ let finalScore = 0;
 let maxScore = 0;
 let scoreText = ""; // 用於 p5.js 繪圖的文字
 
-// !!! 新增煙火全域變數 !!!
+// !!! 煙火全域變數 !!!
 let fireworks = []; // 儲存所有的煙火物件
 let percentage = 0; // 全域儲存百分比
 
 
 window.addEventListener('message', function (event) {
     // 執行來源驗證...
-    // ...
     const data = event.data;
     
     if (data && data.type === 'H5P_SCORE_RESULT') {
         
-        // !!! 關鍵步驟：更新全域變數 !!!
-        finalScore = data.score; // 更新全域變數
+        // 更新全域變數
+        finalScore = data.score; 
         maxScore = data.maxScore;
         scoreText = `最終成績分數: ${finalScore}/${maxScore}`;
         
-        // 計算百分比並更新全域變數
+        // 計算百分比
         percentage = (finalScore / maxScore) * 100;
         
         console.log("新的分數已接收:", scoreText); 
         
-        // ----------------------------------------
-        // 關鍵步驟 2: 呼叫重新繪製 
-        // ----------------------------------------
-        if (typeof redraw === 'function') {
-            // 啟用 draw() 迴圈，以便煙火能夠動起來
+        // 啟用 draw() 迴圈，以便煙火能夠動起來
+        if (typeof loop === 'function') {
             loop(); 
         }
     }
@@ -42,86 +38,83 @@ window.addEventListener('message', function (event) {
 
 
 // =================================================================
-// 步驟二：使用 p5.js 繪製分數 (在網頁 Canvas 上顯示)
+// 步驟二：使用 p5.js 繪製分數與特效 (在 Canvas 上顯示)
 // -----------------------------------------------------------------
 
 function setup() { 
-    // ... (其他設置)
-    createCanvas(windowWidth / 2, windowHeight / 2); 
-    // 將背景改為黑色 (0) 以模擬夜空
+    // ★★★ 關鍵修改點 1: 設置固定的 Canvas 尺寸 400x300 ★★★
+    let canvas = createCanvas(400, 300); 
+    
+    // ★★★ 關鍵修改點 2: 將 Canvas 附加到 #h5pContainer 內 ★★★
+    canvas.parent('h5pContainer'); 
+    
     background(0); 
     // 初始狀態：不進行迴圈繪製，直到收到分數
     noLoop(); 
 } 
 
-// score_display.js 中的 draw() 函數片段
-
 function draw() { 
-    // *** 殘影效果: 使用低透明度的黑背景來淡化前一幀的畫面 ***
-    // 數字越小，殘影越明顯，煙火拖尾感越強。25 是較平衡的值。
+    // ★★★ 關鍵修改點 3: 低透明度的黑背景，創造煙火殘影效果 ★★★
+    // 數字越小，殘影越明顯
     background(0, 25); 
 
     // -----------------------------------------------------------------
-    // A. 根據分數區間改變文本顏色和內容 (畫面反映一)
+    // A. 繪製文本
     // -----------------------------------------------------------------
     
-    textSize(80); 
+    textSize(30); // 調整字體大小以適應 400x300 畫布
     textAlign(CENTER);
     
-    // 確保文字在黑底上可見
-    fill(255); 
-    
+    // Canvas 中心座標
+    const centerX = width / 2;
+    const centerY = height / 2;
+
     if (percentage >= 90) {
-        // 滿分或高分：顯示鼓勵文本，使用鮮豔顏色
-        fill(0, 255, 100); // 亮綠色
-        text("恭喜！優異成績！", width / 2, height / 2 - 50);
+        // 高分：觸發煙火，並顯示鼓勵文本
+        fill(0, 255, 100); 
+        text("恭喜！優異成績！", centerX, centerY - 50);
         
-        // !!! 煙火特效 - 頻率不變 !!!
-        // 每 5 幀發射一個新的煙火
+        // 煙火特效 - 每 5 幀發射一個新的煙火
         if (frameCount % 5 === 0) {
             fireworks.push(new Firework());
         }
         
     } else if (percentage >= 60) {
-        // 中等分數：顯示一般文本
-        fill(255, 200, 50); // 亮黃色
-        text("成績良好，請再接再厲。", width / 2, height / 2 - 50);
+        // 中等分數
+        fill(255, 200, 50); 
+        text("成績良好，請再接再厲。", centerX, centerY - 50);
         
     } else if (percentage > 0) {
-        // 低分：顯示警示文本
-        fill(255, 50, 50); // 亮紅色
-        text("需要加強努力！", width / 2, height / 2 - 50);
+        // 低分
+        fill(255, 50, 50); 
+        text("需要加強努力！", centerX, centerY - 50);
         
     } else {
-        // 尚未收到分數或分數為 0
-        fill(180); // 灰色
-        text(scoreText, width / 2, height / 2);
-        
-        // 如果還沒有收到分數，停止 draw 迴圈
+        // 尚未收到分數
+        fill(180); 
+        text(scoreText, centerX, centerY);
         noLoop();
     }
 
     // 顯示具體分數
-    textSize(50);
-    fill(200); // 淺灰色
-    text(`得分: ${finalScore}/${maxScore}`, width / 2, height / 2 + 50);
+    textSize(25); // 調整字體大小
+    fill(200); 
+    text(`得分: ${finalScore}/${maxScore}`, centerX, centerY);
     
     
     // -----------------------------------------------------------------
-    // B. 根據分數觸發不同的幾何圖形反映 (畫面反映二)
+    // B. 繪製幾何圖形反映 (略為調整位置適應 300 高度)
     // -----------------------------------------------------------------
     
     if (percentage >= 90) {
-        // 畫一個大圓圈代表完美 
         fill(0, 255, 100, 150); // 帶透明度
         noStroke();
-        circle(width / 2, height / 2 + 150, 150);
+        circle(centerX, centerY + 80, 80); // 調整圓圈大小和位置
         
     } else if (percentage >= 60) {
-        // 畫一個方形 
         fill(255, 200, 50, 150);
         rectMode(CENTER);
-        rect(width / 2, height / 2 + 150, 150, 150);
+        rect(centerX, centerY + 80, 80, 80); // 調整方形大小和位置
     }
     
     
@@ -155,13 +148,13 @@ class Particle {
         this.hu = hue;
         
         if (this.firework) {
-            // *** 升空效果: 稍微提高初始向上速度範圍 (-13, -9) ***
-            this.vel = createVector(0, random(-13, -9));
+            // 煙火上升 (速度略快，使升空效果明顯)
+            this.vel = createVector(0, random(-8, -6)); // 調整速度適應 300 高度
         } else {
-            // 爆炸後的粒子，給予隨機放射速度
+            // 爆炸後的粒子，給予隨機放射速度 (四面八方噴濺)
             this.vel = p5.Vector.random2D();
-            // *** 噴濺效果: 提高隨機速度範圍 (4, 15) 使其飛散得更快更遠 ***
-            this.vel.mult(random(4, 15)); 
+            // 提高隨機速度範圍，增強噴濺的爆發感
+            this.vel.mult(random(3, 10)); 
         }
         
         this.acc = createVector(0, 0);
@@ -189,7 +182,6 @@ class Particle {
         if (!this.firework) {
             // 爆炸後的粒子 (四面八方噴濺的碎片)
             strokeWeight(3); 
-            // 使用 this.lifespan 作為透明度 (Alpha)
             stroke(this.hu, 255, 255, this.lifespan);
         } else {
             // 煙火主體 (往上升空的火箭)
@@ -198,7 +190,7 @@ class Particle {
         }
         point(this.pos.x, this.pos.y);
         
-        // 記得切換回 RGB 模式，這樣文字顏色才不會出錯
+        // 記得切換回 RGB 模式
         colorMode(RGB); 
     }
     
@@ -212,7 +204,7 @@ class Firework {
         // 隨機顏色
         this.hu = random(255); 
         // 初始位置在畫布底部中央附近
-        this.firework = new Particle(random(width/2 - 100, width/2 + 100), height, this.hu, true);
+        this.firework = new Particle(random(width/2 - 50, width/2 + 50), height, this.hu, true);
         this.exploded = false;
         this.particles = [];
         this.gravity = createVector(0, 0.2); // 重力
@@ -224,7 +216,8 @@ class Firework {
             this.firework.update();
             
             // 判斷是否到達頂點 (y 速度轉為正或 y 座標夠高)
-            if (this.firework.vel.y >= 0 || this.firework.pos.y < height * 0.3) {
+            // 由於畫布變小，將最高點判斷調整到 height * 0.25
+            if (this.firework.vel.y >= 0 || this.firework.pos.y < height * 0.25) {
                 this.exploded = true;
                 this.explode();
             }
@@ -241,7 +234,7 @@ class Firework {
     }
 
     explode() {
-        // *** 噴濺效果: 產生 200 個粒子 ***
+        // 增強爆炸效果: 產生 200 個粒子
         for (let i = 0; i < 200; i++) {
             let p = new Particle(this.firework.pos.x, this.firework.pos.y, this.hu, false);
             this.particles.push(p);
