@@ -58,6 +58,7 @@ function setup() {
 
 function draw() { 
     // *** 殘影效果: 使用低透明度的黑背景來淡化前一幀的畫面 ***
+    // 數字越小，殘影越明顯，煙火拖尾感越強。25 是較平衡的值。
     background(0, 25); 
 
     // -----------------------------------------------------------------
@@ -76,6 +77,7 @@ function draw() {
         text("恭喜！優異成績！", width / 2, height / 2 - 50);
         
         // !!! 煙火特效 - 頻率不變 !!!
+        // 每 5 幀發射一個新的煙火
         if (frameCount % 5 === 0) {
             fireworks.push(new Firework());
         }
@@ -153,13 +155,13 @@ class Particle {
         this.hu = hue;
         
         if (this.firework) {
-            // 煙火上升的粒子，給予向上速度
-            this.vel = createVector(0, random(-12, -8));
+            // *** 升空效果: 稍微提高初始向上速度範圍 (-13, -9) ***
+            this.vel = createVector(0, random(-13, -9));
         } else {
             // 爆炸後的粒子，給予隨機放射速度
             this.vel = p5.Vector.random2D();
-            // *** 增強爆炸效果: 提高隨機速度範圍 (2 -> 3, 10 -> 12) ***
-            this.vel.mult(random(3, 12)); 
+            // *** 噴濺效果: 提高隨機速度範圍 (4, 15) 使其飛散得更快更遠 ***
+            this.vel.mult(random(4, 15)); 
         }
         
         this.acc = createVector(0, 0);
@@ -185,12 +187,12 @@ class Particle {
         colorMode(HSB); 
         
         if (!this.firework) {
-            // 爆炸後的粒子
+            // 爆炸後的粒子 (四面八方噴濺的碎片)
             strokeWeight(3); 
             // 使用 this.lifespan 作為透明度 (Alpha)
             stroke(this.hu, 255, 255, this.lifespan);
         } else {
-            // 煙火主體 (火箭)
+            // 煙火主體 (往上升空的火箭)
             strokeWeight(6); 
             stroke(this.hu, 255, 255);
         }
@@ -239,7 +241,7 @@ class Firework {
     }
 
     explode() {
-        // *** 增強爆炸效果: 增加粒子數量 (150 -> 200) ***
+        // *** 噴濺效果: 產生 200 個粒子 ***
         for (let i = 0; i < 200; i++) {
             let p = new Particle(this.firework.pos.x, this.firework.pos.y, this.hu, false);
             this.particles.push(p);
